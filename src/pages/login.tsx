@@ -18,8 +18,6 @@ const Login: React.FC = () => {
     const res = await handlePost('/api/login', values); // Use handlePost from the custom hook
 
     if (res.success) {
-    
-      localStorage.setItem('token', 'akjkajsd');
       router.push('/dashboard');
     } else {
      

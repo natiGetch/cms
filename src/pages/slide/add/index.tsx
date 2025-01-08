@@ -4,8 +4,8 @@ import AddAndEditWraper from '@/component/layout/addAndEditWarper';
 import ButtonComponent from '@/component/ui/button';
 import useFetchData from '@/hooks/useFetchData';
 import usePost from '@/hooks/usePost';
-import { Checkbox, Col, Collapse, Form, Row,} from 'antd';
-import React, { useState } from 'react';
+import { Checkbox, Col, Collapse, Form, Popover, Row,} from 'antd';
+import React, { useEffect, useState } from 'react';
 
 type FieldType = {
   title: string;
@@ -26,33 +26,41 @@ const AddSlide = () => {
   const { handlePost } = usePost();
   const [form] = Form.useForm();
   const [imageUrl, setImageUrl] = useState<string>();
-  const [tabsState, setTabsState] = useState<{ [key: string]: boolean }>({});
-
+  const [activeKeys, setActivekeys] = useState<string[]>([])
   const handleCheckboxChange = (langId: string, checked: boolean) => {
-    setTabsState((prev) => ({ ...prev, [langId]: checked }));
+   
   };
 
   const handleFinish = async (values: FieldType) => {
+  
     const payload = {
       image: values['image'][0]?.response?.filePath,
       visible: values['visible'],
       translations: Object.keys(values['translations'])
-        .filter((key) => values['translations'][key]?.enabled)
-        .map((key) => ({
+        .filter((key) => 
+          data?.language?.filter((byKey : {key : string}) => 
+            activeKeys?.includes(byKey.key)).
+             some((filteredItem : {_id : string}) => filteredItem._id === key)
+          )
+          .map((key) => ({
           language: key,
           title: values['translations'][key].title,
           subtitle: values['translations'][key].subtitle,
         })),
     };
-
+ 
     const response = await handlePost('/api/slide', payload);
     if (response.success) {
       form.resetFields();
       setImageUrl(undefined);
-      setTabsState({});
+  
     }
   };
-
+useEffect(()=>{
+  const mandatoryLanguages = data?.language?.filter((lang : { isMandatory : boolean }) => lang.isMandatory).map((lang : { key : string }) => lang.key)
+  setActivekeys(mandatoryLanguages)
+  
+},[data])
   return (
     <AddAndEditWraper>
       <Form
@@ -107,25 +115,40 @@ const AddSlide = () => {
               ]}
             />
           </Col>
-          <Col xs={24} sm={18}>
-          <Collapse>
-  {data?.language?.map((lang: { _id: string; key: string; label: string }) => (
+          <Col xs={24} sm={18} style={{maxHeight : '460px',overflow : 'auto',}}>
+          <Collapse
+          activeKey={activeKeys} //
+        >
+  {data?.language?.map((lang: { _id: string; key: string; label: string,isMandatory : boolean }) => (
     <Collapse.Panel
+  
       key={lang.key}
-      header={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Form.Item
-            name={['translations', lang._id, 'enabled']}
-            valuePropName="checked"
-            initialValue={false}
-            style={{ marginBottom: 0 }}
-          >
-            <Checkbox />
-          </Form.Item>
-          {lang.label}
-        </div>
-      }
-      collapsible={!tabsState[lang._id] ? 'disabled' : undefined}
+      header={ <div style={{display:'flex',gap : '1em'}}>
+        {
+          lang.isMandatory ?
+           <Popover
+           title='Since the languge is mandatory you must add this contnet in this laguage'
+           trigger='click'>
+            <Checkbox checked/> 
+           </Popover>:
+              <Checkbox
+              onClick={() =>
+                setActivekeys((prevArray) => {
+                  if (lang?.key && prevArray.includes(lang.key)) {
+                   
+                    return prevArray.filter((item) => item !== lang.key);
+                  } else if (lang?.key) {
+                  
+                    return [...prevArray, lang.key];
+                  }
+                  return prevArray;
+                })
+              }
+            />
+        }
+          {lang.label}</div>}
+      
+      showArrow={false}
     >
           <DynamicForm
             formConfig={[
@@ -134,10 +157,10 @@ const AddSlide = () => {
                 label: 'Title',
                 inputType: 'input',
                 rules: [
-                  ({ getFieldValue } : any) => ({
-                    required: getFieldValue(['translations', lang._id, 'enabled']),
+                  {
+                    required: lang.isMandatory || activeKeys?.includes(lang.key) , 
                     message: 'Enter Title',
-                  }),
+                  }
                 ],
               },
               {
@@ -145,10 +168,10 @@ const AddSlide = () => {
                 label: 'Subtitle',
                 inputType: 'textArea',
                 rules: [
-                  ({ getFieldValue } : any) => ({
-                    required: getFieldValue(['translations', lang._id, 'enabled']),
+                 {
+                    required:  lang.isMandatory  || activeKeys?.includes(lang.key), 
                     message: 'Enter Subtitle',
-                  }),
+                  }
                 ],
               },
             ]}
@@ -158,8 +181,8 @@ const AddSlide = () => {
    </Collapse>
 
           </Col>
-          <Col span={24} style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <ButtonComponent type="primary" htmlType="submit" text="Add Language" />
+          <Col span={24} style={{ display: 'flex', justifyContent: 'flex-end',paddingTop : '1em'}}>
+            <ButtonComponent type="primary" htmlType="submit" text="Submit" />
           </Col>
         </Row>
       </Form>

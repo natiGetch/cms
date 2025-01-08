@@ -1,6 +1,7 @@
 import DynamicForm from '@/component/forms/componetType'
 import ViewDetailwraper from '@/component/layout/ViewDetailWarper'
 import useFetchData from '@/hooks/useFetchData'
+import { twoColumnLaout } from '@/utils/columnsLayout'
 import { Col, Form, Row, Tag } from 'antd'
 import { useRouter } from 'next/router'
 import React from 'react'
@@ -24,6 +25,12 @@ const ViewLanguage = () => {
             inputType: 'tag',
             initialValue  : data?.language[0]?.key
          
+        },
+        {
+            name: 'isMandatory',
+            label: 'Mandatory',
+            inputType: 'tag',
+            initialValue  : data?.language[0]?.isMandatory ? 'Mandatory ':  'Optional',
         },
         {
             name: 'visible',
@@ -67,11 +74,11 @@ const ViewLanguage = () => {
   return (
         <ViewDetailwraper>
            <Form layout='vertical'>
-             <Row gutter={[50,15]} >
-                <Col span={12}>
+             <Row>
+                <Col {...twoColumnLaout}>
                   <DynamicForm formConfig={leftFormConfig} />
                 </Col>
-                <Col span={12}>
+                <Col {...twoColumnLaout}>
                 <DynamicForm formConfig={rightFormConfig } />
                 </Col>
              </Row>

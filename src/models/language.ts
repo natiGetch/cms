@@ -25,9 +25,9 @@ const languageSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId, 
     ref: "User", 
   },
-  isMadatory : {
+  isMandatory  : {
     type: Boolean, 
-    require : false
+    required : true
   }
 },{ timestamps: true});
 

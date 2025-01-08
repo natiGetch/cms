@@ -9,11 +9,5 @@
  .ant-card .card-no-padding .ant-card-body{
   padding: 0;
 }
-.ant-card .card-no-padding .ant-card-head
-{
-   padding: 0;
-   min-height: 38px;
-}
-.ant-card  .card-no-padding .ant-card-actions {
-   height: 38px;
-}
+
+

@@ -22,7 +22,7 @@ export default async function handler(
 
   if (req.method === "POST") {
     try {
-      const { label, key, visible } = req.body;
+      const { label, key, visible,isMandatory } = req.body;
 
       const existingLanguage = await languageSchema.findOne({
         $or: [{ label }, { key }],
@@ -37,7 +37,7 @@ export default async function handler(
       const lastLanguage = await languageSchema.findOne().sort({ order: -1 });
       const order = lastLanguage ? lastLanguage.order + 1 : 1;
 
-      const newLanguage = new languageSchema({ label, key, visible, order });
+      const newLanguage = new languageSchema({ label, key, visible, order,isMandatory  });
       await newLanguage.save();
 
       res.status(200).json({ message: "Language added successfully!" });

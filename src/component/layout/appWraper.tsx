@@ -6,14 +6,15 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useLoading } from '@/context/loadingContext';
 import { useError } from '@/context/errorContext';
+import { useRouter } from 'next/router';
 const { Header, Content, Footer } = Layout;
 interface AppWrapper {
     children: React.ReactNode;
   }
 const AppWrapper : React.FC<AppWrapper> = ({children}) => {
  const {isLoading} = useLoading()
+ const router = useRouter()
  const {error} = useError()
- const [contextHolder] = notification.useNotification();
  const pathName = usePathname()
  const menuItems = menus.map(item => ({
     key: item.key,
@@ -25,15 +26,16 @@ const AppWrapper : React.FC<AppWrapper> = ({children}) => {
         }))
       : undefined,
   }));
-  
+
  const breadcrumbItems = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: pathName?.replace('/','').charAt(0).toUpperCase() + pathName?.slice(2), href: '#' },
   ];
   return (
-    
-    <Layout>
-       
+     <React.Fragment>
+          {
+      pathName != '/login' ?
+      <Layout>
       <Header
       style={{
         position: 'sticky',
@@ -58,7 +60,7 @@ const AppWrapper : React.FC<AppWrapper> = ({children}) => {
           }))}
           style={{ margin: '16px 0' }}
         />
-         <Card>
+         <Card style={{maxHeight :'calc(100vh - 132px)',overflowY : 'hidden'}}>
           <Spin spinning={isLoading} fullscreen/>
            { !error ? 
            children : 
@@ -73,7 +75,12 @@ const AppWrapper : React.FC<AppWrapper> = ({children}) => {
       <Footer style={{position : 'fixed',bottom : 0,width: '100%',textAlign : 'center'}}>
        Binget MicroFincance ©{new Date().getFullYear()}
       </Footer>
-    </Layout>
+    </Layout> :
+      <Layout>
+        {children}
+      </Layout>
+      }
+     </React.Fragment>
   )
 }
 

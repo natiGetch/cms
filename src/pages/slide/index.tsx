@@ -1,12 +1,9 @@
-import ImageDownLoad from '@/component/forms/imageDownLoad';
 import ViewAllwarper from '@/component/layout/viewAllwarper';
-import ButtonComponent from '@/component/ui/button';
 import OrderModal from '@/component/ui/orderModal';
 import TableComponent from '@/component/ui/table';
-import TextComponet from '@/component/ui/text';
 import useFetchData from '@/hooks/useFetchData';
 import { DownOutlined, InfoCircleOutlined, UpOutlined } from '@ant-design/icons';
-import { Card, Col, Pagination, Row, Tabs, Tag } from 'antd';
+import {Tag } from 'antd';
 import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 
@@ -25,7 +22,6 @@ const Slide = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [currentDirection, setCurrentDirection] = useState<'up' | 'down' | null>(null);
-  const { data: language } = useFetchData({ endpoint: '/api/language' });
   const columns = [
     {
       title: 'View',
@@ -33,31 +29,31 @@ const Slide = () => {
       key: 'view',
       align: 'center',
       width: 75,
-      render: (_: any, record: { _id: string }): React.ReactNode => (
-        <Link href={`/slide/view/${record._id}`}>
+      render: (_: any, record: {slide : { _id: string }}): React.ReactNode => (
+        <Link href={`/slide/view/${record.slide._id}`}>
           <InfoCircleOutlined style={{ cursor: 'pointer' }} />
         </Link>
       ),
     },
     {
       title: 'Order',
-      dataIndex: 'order',
+      dataIndex: ['slide','order'],
       key: 'order',
       align: 'center',
       width: 100,
-      render: (_: any, record: { _id: string; order: number }): React.ReactNode => (
+      render: (_: any, record: {slide :  {_id: string; order: number} }): React.ReactNode => (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {
-          record.order != 1 &&<UpOutlined
+          record.slide.order != 1 &&<UpOutlined
             style={{ cursor: 'pointer', marginBottom: 8 }}
-            onClick={() => openModal(record._id, 'up')}
+            onClick={() => openModal(record.slide._id, 'up')}
           />
           }
           {
-            record.order != data?.slides[data?.slides?.length - 1]?.slide?.order &&
+            record.slide.order != data?.slides[data?.slides?.length - 1]?.slide?.order &&
             <DownOutlined
             style={{ cursor: 'pointer' }}
-            onClick={() => openModal(record._id, 'down')}
+            onClick={() => openModal(record.slide._id, 'down')}
           />
           }
         </div>
@@ -65,17 +61,27 @@ const Slide = () => {
     },
     {
       title: 'Title',
-      dataIndex: '',
+      dataIndex: 'title',
+      width : 100,
       key: 'label',
+      render : (_ : any, record : {translations : {title : string}[]}): React.ReactNode  =>(
+         record?.translations[0]?.title
+      )
     },
     {
+      
       title: 'Subtitle',
-      dataIndex: 'key',
+      dataIndex: 'subtitle',
+      width : 500,
       key: 'key',
+      render : (_ : any, record : {translations : {subtitle : string}[]}): React.ReactNode  =>(
+        record?.translations[0]?.subtitle
+     )
     },
     {
       title: 'Status',
-      dataIndex: 'visible',
+      dataIndex: ['slide','visible'],
+      width : 100,
       key: 'visible',
       render: (visible : boolean): React.ReactNode =>
         visible ? <Tag color="green">Visible</Tag> : <Tag color="red">Hidden</Tag>,
@@ -114,6 +120,7 @@ const Slide = () => {
     <TableComponent
       data={data?.slides || []}
       columns={columns}
+      renderTitle = {true}
       pagination={
         data?.slides.length === 0
           ? undefined

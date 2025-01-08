@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, useMemo, useRef, useState} from "react";
 import {
   Form,
   Input,
@@ -15,14 +15,19 @@ import {
   InputNumber,
   Tag,
   Image,
-} from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+  Spin,
+} from "antd";
+import dynamic from "next/dynamic";
+import "react-quill/dist/quill.snow.css";
+const JoditEditor = dynamic(() => import('jodit-react'), { ssr: false });
+import { UploadOutlined } from "@ant-design/icons";
+
 
 const { Option } = Select;
 const { TextArea, Password } = Input;
 const { RangePicker } = DatePicker;
 
-// Define TypeScript types for formConfig and its items
+
 interface FormItemConfig {
   name: string | number | (string | number)[];
   label?: string;
@@ -37,23 +42,61 @@ interface FormItemConfig {
   conditional?: boolean;
   condition?: boolean;
   uploadText?: string;
+  className?: string;
 }
 
 interface DynamicFormProps {
   formConfig: FormItemConfig[];
 }
 
+
+
 const DynamicForm: React.FC<DynamicFormProps> = ({ formConfig }) => {
+  const joditEditor = useRef<any>(null); 
+  const config = useMemo(() => ({
+    readonly: false,
+    placeholder: "Start typing...",
+    uploader: {
+      insertImageAsBase64URI: false, 
+      url: '/api/uploadImage', 
+      format: 'json',
+      method: 'POST',
+      isSuccess: (resp : any) => !resp.error,
+      prepareData: function (formData : any) {
+          formData.append('mode', "My Files"); 
+          formData.append("name", 'image')
+          formData.append("image", formData.get('files[0]'))
+          formData.delete("files[0]")
+          return formData
+      },
+      process : (resp : any)=> ({
+        files: [resp.filePath], 
+        path: resp.filePath,
+        baseurl: resp.filePath,
+        error: resp.error ? 1 : 0, 
+      }),
+      defaultHandlerSuccess: (resp : any) => {
+          const [tagName, attr] = ['img', 'src']
+          const elm = joditEditor.current.createInside.element(tagName)
+          const baseurl = `${process.env.NEXT_PUBLIC_FILE_URL}${resp.baseurl}`
+          elm.setAttribute(attr,baseurl);
+          joditEditor.current.selection.insertImage(elm, null, resp.files[0].width);
+      }
+  }
+  
+  }), []);
+
+
   const renderFormItem = (item: FormItemConfig) => {
     switch (item.inputType) {
-      case 'input':
+      case "input":
         return <Input {...item.inputProps} />;
-      case 'number':
-      case 'inputNumber': // Both map to InputNumber
-        return <InputNumber style={{ width: '100%' }} {...item.inputProps} />;
-      case 'password':
+      case "number":
+      case "inputNumber": 
+        return <InputNumber style={{ width: "100%" }} {...item.inputProps} />;
+      case "password":
         return <Password {...item.inputProps} />;
-      case 'select':
+      case "select":
         return (
           <Select {...item.inputProps}>
             {item.options?.map((option) => (
@@ -63,7 +106,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ formConfig }) => {
             ))}
           </Select>
         );
-      case 'radio':
+      case "radio":
         return (
           <Radio.Group {...item.inputProps}>
             {item.options?.map((option) => (
@@ -73,7 +116,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ formConfig }) => {
             ))}
           </Radio.Group>
         );
-      case 'checkbox':
+      case "checkbox":
         return (
           <Checkbox.Group {...item.inputProps}>
             {item.options?.map((option) => (
@@ -83,43 +126,57 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ formConfig }) => {
             ))}
           </Checkbox.Group>
         );
-      case 'switch':
+      case "switch":
         return <Switch {...item.inputProps} />;
-      case 'datepicker':
+      case "datepicker":
         return <DatePicker {...item.inputProps} />;
-      case 'rangepicker':
+      case "rangepicker":
         return <RangePicker {...item.inputProps} />;
-      case 'timepicker':
+      case "timepicker":
         return <TimePicker {...item.inputProps} />;
-      case 'slider':
+      case "slider":
         return <Slider {...item.inputProps} />;
-      case 'textArea':
+      case "textArea":
         return <TextArea {...item.inputProps} />;
-      case 'rate':
+      case "rate":
         return <Rate {...item.inputProps} />;
-      case 'image':
+      case "image":
         return <Image {...item.inputProps} alt="" />;
-      case 'upload':
+      case "upload":
         return (
           <Upload {...item.inputProps}>
-            <Button icon={<UploadOutlined />}>{item.uploadText || 'Upload'}</Button>
+            <Button icon={<UploadOutlined />}>
+              {item.uploadText || "Upload"}
+            </Button>
           </Upload>
         );
-      case 'tag':
+      case "tag":
         return (
           <Tag
             style={{
-              borderStyle: 'dashed',
+              borderStyle: "dashed",
               minHeight: 35,
-              height: 'auto',
-              alignContent: 'center',
-              textWrap: 'wrap',
+              height: "auto",
+              alignContent: "center",
+              textWrap: "wrap",
               lineHeight: 3,
-              width: '100%',
+              width: "100%",
             }}
           >
-            {item.initialValue || ''}
+            {item.initialValue || ""}
           </Tag>
+        );
+      case "reactQuill":
+        return (
+          <Suspense fallback={<Spin />}>
+           <JoditEditor
+              ref={joditEditor}
+              editorRef={(ref : any) => joditEditor.current = ref}
+              config={config}
+              {...item.inputProps}
+              
+            />
+        </Suspense>
         );
       default:
         return null;
@@ -128,23 +185,24 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ formConfig }) => {
 
   return (
     <>
-      {formConfig.map((item,index) => (
-        (item.conditional ? item.condition : true) && (
-          <Form.Item
-            
-            key={index}
-            label={item.label}
-            name={item.name}
-            rules={item.rules}
-            extra={item.extra}
-            style={{...item.style}}
-            initialValue={item.initialValue}
-            {...item.formItemProps}
-          >
-            {renderFormItem(item)}
-          </Form.Item>
-        )
-      ))}
+      {formConfig.map(
+        (item, index) =>
+          (item.conditional ? item.condition : true) && (
+            <Form.Item
+              key={index}
+              label={item.label}
+              name={item.name}
+              rules={item.rules}
+              extra={item.extra}
+              style={{ ...item.style }}
+              initialValue={item.initialValue}
+              {...item.formItemProps}
+              className={`${item.extra ? "with-extra" : ""}`}
+            >
+              {renderFormItem(item)}
+            </Form.Item>
+          )
+      )}
     </>
   );
 };

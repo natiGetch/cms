@@ -1,6 +1,7 @@
 import DynamicForm from '@/component/forms/componetType';
 import AddAndEditWraper from '@/component/layout/addAndEditWarper';
 import ButtonComponent from '@/component/ui/button';
+import InfoPopOver from '@/component/ui/infoModal';
 import { useLoading } from '@/context/loadingContext';
 import useFetchData from '@/hooks/useFetchData';
 import useUpdate from '@/hooks/useUpdate';
@@ -39,11 +40,29 @@ const EditLanguage = () => {
       initialValue: data?.language[0]?.key,
     },
     {
+      name: 'isMandatory',
+      label: 'Mandatory',
+      inputType: 'switch',
+      initialValue : data?.language[0]?.isMandatory,
+      inputProps : {
+         style : {
+          display : 'flex',
+          flexDirection : 'row'
+         }
+      },
+      extra : <InfoPopOver 
+          title='If you select this language as mandatory, you will be required to provide content in this language for all relevant sections '/>,
+       
+   
+  },
+  
+    {
       name: 'visible',
       label: 'Visible',
       inputType: 'radio',
       initialValue: data?.language[0]?.visible,
-      extra: 'This will enable the language to be displayed on the website Language list',
+      extra : <InfoPopOver
+      title='If you select this language as visible, it will appear in the dropdown list of available languages for selection.'/>,
       inputProps: {
         options: [
           {
@@ -58,6 +77,7 @@ const EditLanguage = () => {
         optionType: 'button',
         buttonStyle: 'solid',
       },
+      
     },
   ];
 

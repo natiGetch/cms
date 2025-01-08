@@ -63,9 +63,9 @@ const menus  = [
         link : '/news'
     },
     {
-        key : '/faqs',
+        key : '/faq',
         label : 'FAQ ',
-        link : '/faqs'
+        link : '/faq'
     },
     {
         key : '/vacancy',

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Table, TableProps } from 'antd';
 
+
 interface TableComponentProps extends TableProps<any> {
   data: any[]; 
   columns:any[]; 
@@ -11,6 +12,7 @@ interface TableComponentProps extends TableProps<any> {
     onChange: (page: number, pageSize: number) => void; 
   };
   loading?: boolean; 
+  renderTitle? : boolean
 }
 
 const TableComponent = ({
@@ -18,15 +20,18 @@ const TableComponent = ({
   columns,
   pagination,
   loading = false,
+  renderTitle,
   ...restProps
+
 }: TableComponentProps) => {
+ 
   return (
     <Table
       dataSource={data}
       columns={columns}
       loading={loading}
       bordered
-      
+   
       pagination={{
       
         current: pagination?.page,

@@ -12,8 +12,9 @@ type ImageUploadType = {
   formLabel: string;
   formName: string;
   isRequired : boolean,
-  imageUrl : string | undefined
-  setImageUrl : (imageUrl : string)  => void
+  imageUrl: string | undefined
+  setImageUrl : (imageUrl : string)  => void,
+
 };
 
 const getBase64 = (img: FileType, callback: (url: string) => void) => {
@@ -50,6 +51,7 @@ const ImageUpload: React.FC<ImageUploadType> = ({
   isRequired,
   imageUrl,
   setImageUrl,
+
 }) => {
   const [loading, setLoading] = useState(false);
   
@@ -81,12 +83,13 @@ const ImageUpload: React.FC<ImageUploadType> = ({
       valuePropName="fileList"
       getValueFromEvent={normFile}
       rules={[{required : isRequired,message : 'Uplaod Image'}]}
+      
     >
       <Upload
         name="image"
         listType={listType}
         showUploadList={showList}
-        action="http://localhost:3000/api/uploadImage"
+        action={`${process.env.NEXT_PUBLIC_FILE_URL}/api/uploadImage`}
         beforeUpload={beforeUpload}
         onChange={handleChange}
         maxCount={maxCount}

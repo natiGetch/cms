@@ -1,6 +1,7 @@
 import DynamicForm from '@/component/forms/componetType'
 import AddAndEditWraper from '@/component/layout/addAndEditWarper'
 import ButtonComponent from '@/component/ui/button'
+import InfoPopOver from '@/component/ui/infoModal'
 import usePost from '@/hooks/usePost'
 import { singleColumnsLayout } from '@/utils/columnsLayout'
 import { Col, Form, Row } from 'antd'
@@ -26,6 +27,22 @@ const AddLanguage = () => {
             label: 'Key',
             inputType: 'input',
             rules : [{required : true , message : 'Enter Key',}],
+          
+        },
+        {
+            name: 'isMandatory',
+            label: 'Mandatory',
+            inputType: 'switch',
+            initialValue : false,
+            inputProps : {
+               style : {
+                display : 'flex',
+                flexDirection : 'row'
+               }
+            },
+            extra : <InfoPopOver 
+                title='If you select this language as mandatory, you will be required to provide content in this language for all relevant sections '/>,
+             
          
         },
         {
@@ -33,7 +50,8 @@ const AddLanguage = () => {
             label: 'Visible',
             inputType: 'radio',
             initialValue : false,
-            extra : "This will enable the language to be displayed on the website Language list",
+            extra : <InfoPopOver
+            title='If you select this language as visible, it will appear in the dropdown list of available languages for selection.'/>,
             inputProps : {
                 options : [{
                     label : 'Visible',
